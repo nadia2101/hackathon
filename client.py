@@ -22,8 +22,11 @@ def tcpConnection(c_port, server_address):
     # time.sleep(10)
     print(c_port, server_address)
     tcp_socket.connect((server_address, c_port))
-    tcp_socket.send("nadia\n".encode('utf-8'))
+    return tcp_socket
 
 
 port, address_server = udpConnection()
-tcpConnection(port, address_server)
+c_socket = tcpConnection(port, address_server)
+
+# wait for the server to start the game
+print(c_socket.recv(1024).decode('utf-8'))

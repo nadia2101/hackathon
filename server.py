@@ -1,6 +1,7 @@
 import time
 from socket import *
 from struct import *
+import random
 import threading
 
 ip = gethostname()
@@ -22,6 +23,55 @@ def UDPConnection():
         print('tick')
 
 
+def generate_mul():
+    op1 = random.randint(1, 9)
+    op2 = random.randint(0, int(9 / op1))
+    ans = str(op1 * op2)
+    ques = f'{op1} * {op2}'
+
+    return ques, ans
+
+
+def generate_add():
+    op1 = random.randint(0, 9)
+    op2 = random.randint(0, 9 - op1)
+    ans = str(op1 + op2)
+    ques = f'{op1} + {op2}'
+
+    return ques, ans
+
+
+def generate_div():
+    ans = random.randint(1, 9)
+    op1 = random.randint(1, 9)
+    op2 = ans * op1
+    ques = f'{op2} / {op1}'
+
+    return ques, str(ans)
+
+
+def generate_min():
+    op1 = random.randint(0, 9)
+    op2 = random.randint(0, 9 + op1)
+    ans = str(op1 - op2)
+    ques = f'{op1} - {op2}'
+
+    return ques, ans
+
+
+def generate_question():
+    op = random.randint(1, 4)
+
+    if op == 1:
+        return generate_add()
+    if op == 2:
+        return generate_add()
+    if op == 3:
+        return generate_min()
+    if op == 4:
+        return generate_div()
+
+
 def TCPConnection():
     global enough_players
     tcp_socket = socket(AF_INET, SOCK_STREAM)
@@ -29,12 +79,14 @@ def TCPConnection():
     tcp_socket.listen()
 
     socket1, address1 = tcp_socket.accept()
-    socket2, address2 = tcp_socket.accept()
+    # socket2, address2 = tcp_socket.accept()
 
     enough_players = True
 
-    msg1 = socket1.recv(1024)
-    msg2 = socket2.recv(1024)
+    question, answer = generate_question()
+
+    socket1.send(question.encode('utf-8'))
+    # socket2.send(question.encode('utf-8'))
 
 
 # create threads for broadcasting and accepting players
@@ -43,4 +95,3 @@ broadcast_thread = threading.Thread(target=UDPConnection, args=())
 
 players_conn_thread.start()
 broadcast_thread.start()
-
