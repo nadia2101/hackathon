@@ -11,7 +11,8 @@ def udpConnection():
     udp_socket = socket(AF_INET, SOCK_DGRAM)
     udp_socket.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
     udp_socket.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
-    udp_socket.bind(('', 13117))
+    udp_socket.bind(('172.99.255.255', 13117))
+
     msg, address = udp_socket.recvfrom(1024)
     magic_cookies, msg_type, c_port = struct.unpack('!IBH', msg)
     print("Client started, listening for offer requests...")
@@ -44,6 +45,7 @@ def send_ans():
 def rec_result():
     result = c_socket.recv(1024).decode('utf-8')
     print(result)
+    exit(0)
 
 
 th1 = threading.Thread(target=send_ans, args=())
