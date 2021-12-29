@@ -6,6 +6,8 @@ import threading
 
 ip = gethostname()
 enough_players = False
+got_ans = False
+lock = threading.Lock()
 
 
 def UDPConnection():
@@ -53,8 +55,8 @@ def generate_div():
 def generate_min():
     op1 = random.randint(0, 9)
     op2 = random.randint(0, 9 + op1)
-    ans = str(op1 - op2)
-    ques = f'{op1} - {op2}'
+    ans = str(op2 - op1)
+    ques = f'{op2} - {op1}'
 
     return ques, ans
 
@@ -79,7 +81,7 @@ def TCPConnection():
     tcp_socket.listen()
 
     socket1, address1 = tcp_socket.accept()
-    # socket2, address2 = tcp_socket.accept()
+    socket2, address2 = tcp_socket.accept()
 
     enough_players = True
 
@@ -87,15 +89,49 @@ def TCPConnection():
     question = 'How much is ' + question + ' ?'
 
     socket1.send(question.encode('utf-8'))
-    # socket2.send(question.encode('utf-8'))
+    socket2.send(question.encode('utf-8'))
 
-    # wait for answer
-    socket1.settimeout(10)
-    ans = socket1.recv(1024)
-    print(ans.decode('utf-8'))
+    th1 = threading.Thread(target=play, args=(socket1, socket2, answer))
+    th2 = threading.Thread(target=play, args=(socket2, socket1, answer))
 
+    th1.start()
+    th2.start()
+
+
+def play(c_socket, others_socket, answer):
+    global got_ans
+    global lock
+    # wait for an answer
+    c_socket.settimeout(10)
+    try:
+        ans = c_socket.recv(1024)
+        print(ans.decode('utf-8'))
+    except timeout:
+        print('timeout')
+        got_ans = True
+        try:
+            c_socket.send('It\'s a draw'.encode('utf-8'))
+            others_socket.send('It\'s a draw'.encode('utf-8'))
+        except timeout:
+            return
+        return
+
+    # lock - this player answered first
+    lock.acquire()
+    if got_ans:
+        return
+
+    got_ans = True
     # check for correctness
-    
+    print(answer)
+    print(chr(ans[0]))
+    if chr(ans[0]) == answer[0]:
+        c_socket.send('You have won!'.encode('utf-8'))
+        others_socket.send('You have lost :('.encode('utf-8'))
+    else:
+        others_socket.send('You have won!'.encode('utf-8'))
+        c_socket.send('You have lost :('.encode('utf-8'))
+
 
 # create threads for broadcasting and accepting players
 players_conn_thread = threading.Thread(target=TCPConnection, args=())
