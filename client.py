@@ -1,7 +1,9 @@
 import struct
+import sys
 import time
 from socket import *
 from struct import *
+from msvcrt import *
 
 
 def udpConnection():
@@ -30,3 +32,5 @@ c_socket = tcpConnection(port, address_server)
 
 # wait for the server to start the game
 print(c_socket.recv(1024).decode('utf-8'))
+ans = getch()
+c_socket.send(chr(ans[0]).encode('utf-8'))

@@ -84,10 +84,18 @@ def TCPConnection():
     enough_players = True
 
     question, answer = generate_question()
+    question = 'How much is ' + question + ' ?'
 
     socket1.send(question.encode('utf-8'))
     # socket2.send(question.encode('utf-8'))
 
+    # wait for answer
+    socket1.settimeout(10)
+    ans = socket1.recv(1024)
+    print(ans.decode('utf-8'))
+
+    # check for correctness
+    
 
 # create threads for broadcasting and accepting players
 players_conn_thread = threading.Thread(target=TCPConnection, args=())
